@@ -1,0 +1,7 @@
+[package]
+name = "rustcache"
+version = "0.1.0"
+authors = ["Miguel Lattuada <miguellattuada@outlook.com>"]
+edition = "2018"
+
+[dependencies]
