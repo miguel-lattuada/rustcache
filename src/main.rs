@@ -3,6 +3,9 @@ use std::time::Duration;
 use std::io::prelude::*;
 use std::net::{TcpListener, TcpStream, SocketAddr, IpAddr};
 
+mod threadpool;
+use threadpool::{ThreadPool, ThreadPoolConfig};
+
 const TCP_PORT: u16 = 5002;
 const HOST: [u8; 4] = [127, 0, 0, 1];
 
@@ -28,17 +31,22 @@ fn error_handler(error: std::io::Error) {
 }
 
 fn main() -> Result<(), std::string::FromUtf8Error> {
+    let pool = ThreadPool::new(ThreadPoolConfig {
+        max_threads: 8
+    });
+    
     let addr: SocketAddr = SocketAddr::new(IpAddr::from(HOST), TCP_PORT);
     let listener: TcpListener = TcpListener::bind(addr).unwrap();
-
     loop {
         match listener.accept() {
             Ok((mut stream, _addr)) => {
-                thread::spawn(move || {
-                    connection_handler(&mut stream, addr)
+                pool.execute(move || {
+                    connection_handler(&mut stream, addr);
                 });
             },
             Err(e) => error_handler(e)
         }
     }
 }
+
+

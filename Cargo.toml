@@ -5,3 +5,8 @@ authors = ["Miguel Lattuada <miguellattuada@outlook.com>"]
 edition = "2018"
 
 [dependencies]
+
+[workspace]
+members = [
+    "rustcache-client"
+]
