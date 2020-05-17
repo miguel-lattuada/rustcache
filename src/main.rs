@@ -1,9 +1,12 @@
+mod shared;
+mod threadpool;
+
 use std::thread;
 use std::time::Duration;
 use std::io::prelude::*;
 use std::net::{TcpListener, TcpStream, SocketAddr, IpAddr};
 
-mod threadpool;
+use shared::SharedMemory;
 use threadpool::{ThreadPool, ThreadPoolConfig};
 
 const TCP_PORT: u16 = 5002;
@@ -31,8 +34,11 @@ fn error_handler(error: std::io::Error) {
 }
 
 fn main() -> Result<(), std::string::FromUtf8Error> {
+    let memory = SharedMemory::new("POSD".to_string());
+
     let pool = ThreadPool::new(ThreadPoolConfig {
-        max_threads: 8
+        max_threads: 8,
+        shared_memory: memory
     });
     
     let addr: SocketAddr = SocketAddr::new(IpAddr::from(HOST), TCP_PORT);
@@ -40,7 +46,7 @@ fn main() -> Result<(), std::string::FromUtf8Error> {
     loop {
         match listener.accept() {
             Ok((mut stream, _addr)) => {
-                pool.execute(move || {
+                pool.execute(move |memory: &SharedMemory| {
                     connection_handler(&mut stream, addr);
                 });
             },
